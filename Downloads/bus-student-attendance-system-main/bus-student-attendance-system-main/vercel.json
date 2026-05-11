@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "buildCommand": "bash build.sh",
   "builds": [
     {
       "src": "bustracking/wsgi.py",
@@ -10,14 +11,17 @@
       }
     },
     {
-      "src": "static/**",
-      "use": "@vercel/static"
+      "src": "staticfiles/**",
+      "use": "@vercel/static",
+      "config": {
+        "maxAge": 31536000
+      }
     }
   ],
   "routes": [
     {
-      "src": "/static/(.*)",
-      "dest": "/static/$1"
+      "src": "/staticfiles/(.*)",
+      "dest": "/staticfiles/$1"
     },
     {
       "src": "/(.*)",
@@ -26,6 +30,8 @@
   ],
   "env": {
     "PYTHON_VERSION": "3.11",
-    "DEBUG": "False"
+    "DEBUG": "False",
+    "SECRET_KEY": "@django-insecure-oc=tsiw%r2jpl(9y0_ua_p0)e@q=%@w1-f880pr8@xnoyq2()j",
+    "ALLOWED_HOSTS": "*.vercel.app,.vercel.app,localhost,127.0.0.1"
   }
 }
