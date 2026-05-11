@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - Bus Attendance System{% endblock %}
+
+{% block content %}
+<h2>Register as Student</h2>
+<div style="padding: 25px; background: #f7faff; border-radius: 12px;">
+    <form method="post" style="max-width: 500px; margin: 0 auto;">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-group">
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.help_text %}
+                    <small>{{ field.help_text }}</small>
+                {% endif %}
+                {% if field.errors %}
+                    <p style="color: #f44336;">{{ field.errors }}</p>
+                {% endif %}
+            </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-success">Register</button>
+    </form>
+    <p style="margin-top: 20px;">Already registered? <a href="/login/">Login here</a>.</p>
+</div>
+{% endblock %}

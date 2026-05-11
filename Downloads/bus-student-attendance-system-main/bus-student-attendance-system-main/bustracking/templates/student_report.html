@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Report - Bus Attendance System{% endblock %}
+
+{% block content %}
+
+<h2>Student Travel Report</h2>
+
+<div style="background: #f0f4ff; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+    <h3 style="margin-top: 0;">{{ student.name }}</h3>
+    <p><strong>Roll Number:</strong> {{ student.roll_number }}</p>
+    <p><strong>Email:</strong> {{ student.email }}</p>
+    <p><strong>Phone:</strong> {{ student.phone_number }}</p>
+    {% if student.bus %}
+    <p><strong>Assigned Bus:</strong> {{ student.bus.name }} ({{ student.bus.route }})</p>
+    {% endif %}
+</div>
+
+<div class="stats-container">
+    <div class="stat-card">
+        <h3>Total Trips</h3>
+        <div class="number">{{ total_trips }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Total Time in Bus</h3>
+        <div class="number">{{ total_time_in_bus }}h</div>
+    </div>
+    <div class="stat-card">
+        <h3>Reporting Period</h3>
+        <div class="number">{{ days }} days</div>
+    </div>
+</div>
+
+<h3>Filter by Days</h3>
+<form method="get" class="filter-form">
+    <div class="form-group">
+        <label>Number of Days:</label>
+        <select name="days">
+            <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
+            <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
+            <option value="60" {% if days == 60 %}selected{% endif %}>Last 60 days</option>
+            <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 days</option>
+        </select>
+    </div>
+    <button type="submit" class="btn">Apply</button>
+</form>
+
+<h3>Travel History</h3>
+{% if records %}
+<table>
+    <tr>
+        <th>Date</th>
+        <th>Bus Name</th>
+        <th>Entry Time</th>
+        <th>Exit Time</th>
+        <th>Duration</th>
+        <th>Status</th>
+    </tr>
+    {% for record in records %}
+    <tr>
+        <td>{{ record.date }}</td>
+        <td>{{ record.bus.name }}</td>
+        <td>{{ record.entry_time|time:"H:i:s" }}</td>
+        <td>
+            {% if record.exit_time %}
+                {{ record.exit_time|time:"H:i:s" }}
+            {% else %}
+                <span style="color: #ff9800;">--</span>
+            {% endif %}
+        </td>
+        <td>
+            {% if record.exit_time %}
+                {% with duration=record.duration_in_bus %}
+                    {% if duration %}
+                        {{ duration.total_seconds|timedelta_format }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                {% endwith %}
+            {% else %}
+                <span style="color: #ff9800;">--</span>
+            {% endif %}
+        </td>
+        <td>
+            {% if record.exit_time %}
+                <span style="color: #4CAF50; font-weight: bold;">Completed</span>
+            {% else %}
+                <span style="color: #ff9800; font-weight: bold;">Active</span>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+<div class="no-data">No travel records found for the selected period.</div>
+{% endif %}
+
+<div style="margin-top: 20px;">
+    <a href="/" class="btn">Back to Home</a>
+    <a href="/dashboard/" class="btn btn-info">View Dashboard</a>
+</div>
+
+{% endblock %}

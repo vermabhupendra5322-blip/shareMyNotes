@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Dashboard - Bus Attendance System{% endblock %}
+
+{% block content %}
+<div class="dashboard-hero">
+    <div>
+        <h2>Hello, {{ student.name }}!</h2>
+        <p>Welcome to your student dashboard. Track your boarding status, attendance, and bus details here.</p>
+    </div>
+    <div class="hero-actions">
+        <a href="/student/report/" class="btn btn-info">View Travel Report</a>
+    </div>
+</div>
+
+<div class="quick-cards">
+    <div class="summary-card summary-primary">
+        <div class="card-title">Current Status</div>
+        <div class="card-number">{{ current_status }}</div>
+    </div>
+    <div class="summary-card summary-success">
+        <div class="card-title">Assigned Bus</div>
+        <div class="card-number">{% if student.bus %}{{ student.bus.name }}{% else %}Not assigned{% endif %}</div>
+    </div>
+    <div class="summary-card summary-warning">
+        <div class="card-title">Boarding Today</div>
+        <div class="card-number">{{ today_entries|length }}</div>
+    </div>
+    <div class="summary-card summary-info">
+        <div class="card-title">This Week Trips</div>
+        <div class="card-number">{{ total_week_trips }}</div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <section class="panel">
+        <div class="panel-header">
+            <h3>My Bus Details</h3>
+        </div>
+        <div class="summary-block">
+            <div class="summary-item">
+                <span>Bus</span>
+                <strong>{% if student.bus %}{{ student.bus.name }}{% else %}Not Assigned{% endif %}</strong>
+            </div>
+            <div class="summary-item">
+                <span>Route</span>
+                <strong>{% if student.bus %}{{ student.bus.route }}{% else %}--{% endif %}</strong>
+            </div>
+            <div class="summary-item">
+                <span>Driver</span>
+                <strong>{% if student.bus %}{{ student.bus.driver_name }}{% else %}--{% endif %}</strong>
+            </div>
+            <div class="summary-item">
+                <span>Contact</span>
+                <strong>{% if student.bus %}{{ student.bus.driver_phone }}{% else %}--{% endif %}</strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="panel">
+        <div class="panel-header">
+            <h3>Scan Bus QR</h3>
+        </div>
+        <div class="panel-content">
+            {% if student.bus %}
+            <p>Scan the bus QR code to mark your boarding instantly.</p>
+            <div class="btn-group">
+                <button type="button" class="btn btn-info" id="open-scanner-btn">Open Scanner</button>
+                <a href="{% url 'scan_bus' student.bus.id %}" class="btn btn-info">Manual Scan Page</a>
+            </div>
+            <button type="button" class="btn btn-danger" id="close-scanner-btn" style="display:none; margin-top: 15px;">Stop Scanner</button>
+            <div id="qr-scanner-section" style="display:none; margin-top: 20px;">
+                <div id="qr-reader" style="width: 100%; max-width: 600px; margin: 0 auto;"></div>
+                <p id="qr-status" class="qr-status"></p>
+            </div>
+            {% else %}
+            <div class="no-data">No bus assigned yet. Please contact the administrator.</div>
+            {% endif %}
+        </div>
+    </section>
+</div>
+
+<section class="panel">
+    <div class="panel-header">
+        <h3>Weekly Attendance</h3>
+    </div>
+    <div class="attendance-chart">
+        {% for item in weekly_data %}
+        <div class="chart-column">
+            <div class="chart-bar" style="height: {{ item.height }}px"></div>
+            <span>{{ item.day }}</span>
+            <small>{{ item.count }}</small>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="panel">
+    <div class="panel-header">
+        <h3>Today's Entries</h3>
+    </div>
+    {% if today_entries %}
+    <table class="dashboard-table">
+        <thead>
+            <tr>
+                <th>Bus</th>
+                <th>Boarding Place</th>
+                <th>Boarded At</th>
+                <th>Exit Place</th>
+                <th>Status</th>
+                <th>Source</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in today_entries %}
+            <tr>
+                <td>{{ record.bus.name }}</td>
+                <td>{{ record.boarding_place }}</td>
+                <td>{{ record.entry_time|time:"H:i:s" }}</td>
+                <td>{{ record.exit_place|default:'--' }}</td>
+                <td>{% if record.exit_time %}<span class="status-badge status-completed">Completed</span>{% else %}<span class="status-badge status-active">Active</span>{% endif %}</td>
+                <td>{{ record.source }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="no-data">No entries recorded today.</div>
+    {% endif %}
+</section>
+
+<script src="https://unpkg.com/html5-qrcode@2.3.11/minified/html5-qrcode.min.js"></script>
+<script>
+    const openScannerBtn = document.getElementById('open-scanner-btn');
+    const closeScannerBtn = document.getElementById('close-scanner-btn');
+    const scannerSection = document.getElementById('qr-scanner-section');
+    const qrStatus = document.getElementById('qr-status');
+    let qrScanner = null;
+
+    function setQrStatus(message) {
+        if (qrStatus) {
+            qrStatus.textContent = message;
+        }
+    }
+
+    function stopScanner() {
+        if (qrScanner) {
+            qrScanner.clear().then(() => {
+                qrScanner = null;
+                setQrStatus('Scanner stopped.');
+                if (closeScannerBtn) closeScannerBtn.style.display = 'none';
+                if (openScannerBtn) openScannerBtn.style.display = 'inline-block';
+            }).catch((err) => {
+                console.warn('Scanner stop failed:', err);
+                setQrStatus('Unable to stop scanner. Please refresh if needed.');
+            });
+        }
+    }
+
+    function isValidInternalUrl(urlText) {
+        try {
+            const url = new URL(urlText, window.location.origin);
+            return url.origin === window.location.origin && url.pathname.startsWith('/scan/');
+        } catch (err) {
+            return false;
+        }
+    }
+
+    function onScanSuccess(decodedText) {
+        if (isValidInternalUrl(decodedText)) {
+            stopScanner();
+            setQrStatus('QR code detected. Redirecting...');
+            const url = new URL(decodedText, window.location.origin);
+            window.location.href = url.pathname + url.search;
+        } else {
+            setQrStatus('Invalid QR code scanned. Use the bus QR code for this system.');
+        }
+    }
+
+    function onScanFailure(error) {
+        setQrStatus('Scanning... ' + error);
+    }
+
+    if (openScannerBtn) {
+        openScannerBtn.addEventListener('click', () => {
+            scannerSection.style.display = 'block';
+            if (openScannerBtn) openScannerBtn.style.display = 'none';
+            if (closeScannerBtn) closeScannerBtn.style.display = 'inline-block';
+            setQrStatus('Requesting camera access...');
+
+            qrScanner = new Html5QrcodeScanner('qr-reader', {
+                fps: 10,
+                qrbox: 250,
+            }, false);
+            qrScanner.render(onScanSuccess, onScanFailure);
+        });
+    }
+
+    if (closeScannerBtn) {
+        closeScannerBtn.addEventListener('click', stopScanner);
+    }
+</script>
+{% endblock %}

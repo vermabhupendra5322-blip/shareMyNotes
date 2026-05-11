@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - Bus Attendance System{% endblock %}
+
+{% block content %}
+<div class="dashboard-hero">
+    <div>
+        <h2>Welcome back, Admin!</h2>
+        <p>Here's what's happening with your bus system today.</p>
+    </div>
+    <div class="hero-actions">
+        <a href="/admin/dashboard/" class="btn btn-info">Refresh</a>
+    </div>
+</div>
+
+<div class="quick-cards">
+    <div class="summary-card summary-primary">
+        <div class="card-title">Total Buses</div>
+        <div class="card-number">{{ total_buses }}</div>
+    </div>
+    <div class="summary-card summary-success">
+        <div class="card-title">Total Students</div>
+        <div class="card-number">{{ total_students }}</div>
+    </div>
+    <div class="summary-card summary-warning">
+        <div class="card-title">Students Onboard</div>
+        <div class="card-number">{{ onboard_count }}</div>
+    </div>
+    <div class="summary-card summary-danger">
+        <div class="card-title">Absent Students</div>
+        <div class="card-number">{{ absent_students }}</div>
+    </div>
+    <div class="summary-card summary-info">
+        <div class="card-title">Today's Scans</div>
+        <div class="card-number">{{ scan_count }}</div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <section class="panel panel-large">
+        <div class="panel-header">
+            <h3>Live Bus Status</h3>
+            <span class="timestamp">{{ today }}</span>
+        </div>
+        <table class="dashboard-table">
+            <thead>
+                <tr>
+                    <th>Bus</th>
+                    <th>Route</th>
+                    <th>Driver</th>
+                    <th>Capacity</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bus in buses %}
+                <tr>
+                    <td>{{ bus.name }}</td>
+                    <td>{{ bus.route }}</td>
+                    <td>{{ bus.driver_name }}</td>
+                    <td>{{ bus.capacity }}</td>
+                    <td><span class="status-badge status-running">Active</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <section class="panel panel-large">
+        <div class="panel-header">
+            <h3>Attendance Overview</h3>
+        </div>
+        <div class="overview-list">
+            <div class="overview-item">
+                <span>Unique Students Today</span>
+                <strong>{{ unique_present }}</strong>
+            </div>
+            <div class="overview-item">
+                <span>Boarding Records</span>
+                <strong>{{ scan_count }}</strong>
+            </div>
+            <div class="overview-item">
+                <span>Onboard Right Now</span>
+                <strong>{{ onboard_count }}</strong>
+            </div>
+            <div class="overview-item">
+                <span>Absent Students</span>
+                <strong>{{ absent_students }}</strong>
+            </div>
+        </div>
+    </section>
+</div>
+
+<section class="panel">
+    <div class="panel-header">
+        <h3>Add New Bus</h3>
+    </div>
+    <form method="post" class="form-panel">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-success">Create Bus</button>
+    </form>
+</section>
+
+<section class="panel">
+    <div class="panel-header">
+        <h3>Bus QR Codes</h3>
+    </div>
+    <div class="bus-list">
+        {% for bus in buses %}
+        <div class="bus-card">
+            <h3>{{ bus.name }}</h3>
+            <p><strong>Route:</strong> {{ bus.route }}</p>
+            <p><strong>Driver:</strong> {{ bus.driver_name }}</p>
+            <p><strong>Scan URL:</strong> <code>/scan/{{ bus.id }}/</code></p>
+            <div class="qr-section">
+                <img src="/admin/qr-code/{{ bus.id }}/" alt="QR Code for {{ bus.name }}" />
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

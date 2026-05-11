@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}QR Scan - Bus Attendance System{% endblock %}
+
+{% block content %}
+<h2>QR Scan Boarding</h2>
+
+<div style="padding: 25px; background: #f7faff; border-radius: 12px; max-width: 700px; margin: 0 auto;">
+    <p><strong>Bus:</strong> {{ bus.name }}</p>
+    <p><strong>Route:</strong> {{ bus.route }}</p>
+    <p><strong>Student:</strong> {{ student.name }}</p>
+    <p><strong>Email:</strong> {{ student.email }}</p>
+    <hr style="margin: 20px 0;"/>
+    <form method="post" style="max-width: 100%;">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-success">Confirm Boarding</button>
+    </form>
+</div>
+
+{% endblock %}

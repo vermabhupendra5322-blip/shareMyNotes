@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Bus Attendance System{% endblock %}
+
+{% block content %}
+<h2>Bus Attendance Dashboard</h2>
+
+<!-- Statistics -->
+<div class="stats-container">
+    <div class="stat-card">
+        <h3>Today's Total Entries</h3>
+        <div class="number">{{ today_entries }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Active Students Today</h3>
+        <div class="number">{{ total_students_today }}</div>
+    </div>
+</div>
+
+<!-- Bus-wise Statistics -->
+<h3>Bus-wise Statistics (Today)</h3>
+<table>
+    <tr>
+        <th>Bus Name</th>
+        <th>Route</th>
+        <th>Total Entries</th>
+        <th>Unique Students</th>
+        <th>Currently In Bus</th>
+        <th>Action</th>
+    </tr>
+    {% for stat in bus_stats %}
+    <tr>
+        <td>{{ stat.bus.name }}</td>
+        <td>{{ stat.bus.route }}</td>
+        <td>{{ stat.entries }}</td>
+        <td>{{ stat.unique_students }}</td>
+        <td><span class="badge" style="background: {% if stat.current_students > 0 %}#4CAF50{% else %}#999{% endif %}; color: white; padding: 5px 10px; border-radius: 3px;">{{ stat.current_students }}</span></td>
+        <td><a href="/bus-report/{{ stat.bus.id }}/" class="btn btn-info" style="font-size: 12px; padding: 8px 12px;">View Report</a></td>
+    </tr>
+    {% endfor %}
+</table>
+
+<!-- Filters -->
+<h3>Filter Records</h3>
+<div class="filter-container">
+    <form method="get" class="filter-form">
+        <div class="form-group">
+            <label>Select Bus:</label>
+            <select name="bus">
+                <option value="">-- All Buses --</option>
+                {% for bus in buses %}
+                <option value="{{ bus.id }}" {% if selected_bus|add:0 == bus.id %}selected{% endif %}>{{ bus.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Select Date:</label>
+            <input type="date" name="date" value="{{ selected_date }}" />
+        </div>
+        <button type="submit" class="btn">Filter</button>
+        <a href="/dashboard/" class="btn btn-info">Clear</a>
+    </form>
+</div>
+
+<!-- Records Table -->
+<h3>Attendance Records</h3>
+{% if records %}
+<table>
+    <tr>
+        <th>Bus Name</th>
+        <th>Student Name</th>
+        <th>Roll Number</th>
+        <th>Date</th>
+        <th>Entry Time</th>
+        <th>Exit Time</th>
+        <th>Duration</th>
+        <th>Status</th>
+    </tr>
+    {% for record in records %}
+    <tr>
+        <td>{{ record.bus.name }}</td>
+        <td>{{ record.student.name }}</td>
+        <td>{{ record.student.roll_number }}</td>
+        <td>{{ record.date }}</td>
+        <td>{{ record.entry_time|time:"H:i:s" }}</td>
+        <td>
+            {% if record.exit_time %}
+                {{ record.exit_time|time:"H:i:s" }}
+            {% else %}
+                <span style="color: #ff9800; font-weight: bold;">IN BUS</span>
+            {% endif %}
+        </td>
+        <td>
+            {% if record.exit_time %}
+                {% with duration=record.duration_in_bus %}
+                    {% if duration %}
+                        {{ duration|timedelta_format }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                {% endwith %}
+            {% else %}
+                <span style="color: #ff9800;">--</span>
+            {% endif %}
+        </td>
+        <td>
+            {% if record.exit_time %}
+                <span style="color: #4CAF50; font-weight: bold;">Completed</span>
+            {% else %}
+                <span style="color: #ff9800; font-weight: bold;">Active</span>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+<div class="no-data">No records found for the selected filters.</div>
+{% endif %}
+
+<script>
+// Custom template filter for timedelta display
+Django.templatetags = Django.templatetags || {};
+</script>
+
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Bus Attendance System{% endblock %}
+
+{% block content %}
+<h2>Welcome to Bus Student Attendance System</h2>
+
+<div class="stats-container">
+    <div class="stat-card">
+        <h3>Total Buses</h3>
+        <div class="number">{{ total_buses }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Total Students</h3>
+        <div class="number">{{ total_students }}</div>
+    </div>
+</div>
+
+<div style="padding: 30px; background: #f5f7ff; border-radius: 12px;">
+    <h3>Get Started</h3>
+    <p>Use your Gmail account to register as a student, or login if you already have an account.</p>
+    <div class="btn-group" style="margin-top: 20px;">
+        <a href="/register/" class="btn btn-success">Student Register</a>
+        <a href="/login/" class="btn btn-info">Login</a>
+    </div>
+</div>
+
+{% endblock %}

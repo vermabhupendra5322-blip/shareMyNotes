@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Status - Bus Attendance System{% endblock %}
+
+{% block content %}
+
+{% if type == "success" %}
+<div class="success-box">
+    <div class="emoji">✅</div>
+    <h2>{{ msg }}</h2>
+    <p>Record has been saved successfully in the system.</p>
+    <a href="/" class="btn">Back to Home</a>
+</div>
+{% elif type == "warning" %}
+<div style="background: #fff3cd; border: 2px solid #ff9800; padding: 30px; border-radius: 8px; text-align: center; margin: 40px 0;">
+    <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+    <h2 style="color: #ff6f00; border: none;">{{ msg }}</h2>
+    <p style="color: #333; margin: 10px 0;">Please check the details and try again.</p>
+    <a href="/" class="btn">Back to Home</a>
+</div>
+{% elif type == "error" %}
+<div style="background: #ffebee; border: 2px solid #f44336; padding: 30px; border-radius: 8px; text-align: center; margin: 40px 0;">
+    <div style="font-size: 48px; margin-bottom: 20px;">❌</div>
+    <h2 style="color: #d32f2f; border: none;">{{ msg }}</h2>
+    <p style="color: #333; margin: 10px 0;">An error occurred while processing your request.</p>
+    <a href="/" class="btn">Back to Home</a>
+</div>
+{% else %}
+<div class="success-box">
+    <div class="emoji">ℹ️</div>
+    <h2>{{ msg }}</h2>
+    <p>Operation completed.</p>
+    <a href="/" class="btn">Back to Home</a>
+</div>
+{% endif %}
+
+{% endblock %}
